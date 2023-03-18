@@ -10,8 +10,10 @@ const { Dragger } = Upload;
 
 export default function PostsPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLoading, setLoading] = React.useState(false);
+  const [fileList, setFileList] = useState(null);
   const { isAuthenticated } = useAuth()
-console.log('========>isAuthenticated : ', isAuthenticated)
+  console.log('========>isAuthenticated : ', isAuthenticated)
   const data = [
     {
       key: '1',
@@ -31,18 +33,22 @@ console.log('========>isAuthenticated : ', isAuthenticated)
     setIsModalVisible(true);
   };
 
-  const handleModalOk = async file => {
-    const { success, error } = await uploadReport(file);
+  const handleModalOk = async _ => {
+    setLoading(true);
+    const { success, error } = await uploadReport(fileList[0]);
     if (success) {
       setIsModalVisible(false);
+      setFileList([])
       message.success('Report successfully uploaded!');
     } else {
       message.error(error);
     }
+    setLoading(false);
   };
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
+    setFileList([])
   };
 
   const dummyRequest = ({ _, onSuccess }) => {
@@ -54,8 +60,10 @@ console.log('========>isAuthenticated : ', isAuthenticated)
   const draggerProps = {
     name: 'report',
     multiple: false,
-    showUploadList: false,
+    maxCount: 1,
     customRequest: dummyRequest,
+    fileList: fileList,
+    disabled: isLoading,
     beforeUpload: file => {
       const isCSV = file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
       if (!isCSV) {
@@ -65,6 +73,9 @@ console.log('========>isAuthenticated : ', isAuthenticated)
       const isLtMaxSize = file.size <= maxSize;
       if (!isLtMaxSize) {
         message.error('File must be smaller than 10MB!');
+      }
+      if (isCSV && isLtMaxSize) {
+        setFileList([file])
       }
       return isCSV && isLtMaxSize;
     },
@@ -90,7 +101,14 @@ console.log('========>isAuthenticated : ', isAuthenticated)
         <Table dataSource={data}>
           <Column title="Report Name" dataIndex="name" key="name" />
         </Table>
-        <Modal title="Upload File" visible={isModalVisible} onOk={handleModalOk} onCancel={handleModalCancel}>
+        <Modal
+          title="Upload File"
+          visible={isModalVisible}
+          onOk={handleModalOk}
+          onCancel={handleModalCancel}
+          okButtonProps={{ disabled: isLoading }}
+          cancelButtonProps={{ disabled: isLoading }}
+        >
           <Dragger {...draggerProps}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
