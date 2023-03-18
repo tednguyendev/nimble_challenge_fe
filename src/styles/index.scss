@@ -3,6 +3,7 @@
 // .div {
 //   text-color: red
 // }
+
 .site-page-header {
   background: #fff;
 }
@@ -15,11 +16,10 @@
   height: 100%;
 }
 
-.DefaultLayout {
-  min-height: 100vh;
-}
-
 .form-wrapper {
   max-width: 500px;
   flex-grow: 1;
+}
+.ant-layout {
+  height: 100vh;
 }

@@ -5,7 +5,7 @@ const { Header, Footer, Content } = Layout
 
 function DefaultLayout({ children, ...props }) {
   return (
-    <Layout className="DefaultLayout">
+    <Layout>
       <Header>
         <h2 style={{ color: '#fff' }}>Nimble Crawler</h2>
       </Header>
