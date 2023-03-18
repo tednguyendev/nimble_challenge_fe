@@ -1,1 +1,1 @@
-export const SESSION_TOKEN_KEY = 'rexy_admin_token'
+export const SESSION_TOKEN_KEY = 'nimble_crawler_token'
