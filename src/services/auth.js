@@ -1,5 +1,7 @@
 import { createAxios } from '../config/axios';
 import Cookies from 'js-cookie';
+import axios from 'axios';
+import env from '../config/environment';
 
 export async function signIn({ email, password }) {
   try {
@@ -17,6 +19,27 @@ export async function signIn({ email, password }) {
       success: false,
       data: null,
       error: error.response.data.errors.message,
+    };
+  }
+}
+export async function signUp({ email, password }) {
+  try {
+    const resp = await axios.create({
+      baseURL: env.api_endpoint,
+    }).post('/sign-up', {
+      email,
+      password,
+    });
+    return {
+      success: true,
+      data: resp.data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      error: error.response.data.message,
     };
   }
 }
