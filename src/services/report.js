@@ -24,3 +24,15 @@ export async function uploadReport(file) {
     };
   }
 }
+
+export async function getReports({ page = 1, perPage = 10, keyword = '', orderBy = 'created_at_ascending' }) {
+  const resp = await createAxios({ token: getAuthToken() }).get('/reports', {
+    params: {
+      page,
+      per_page: perPage,
+      keyword,
+      order_by: orderBy
+    }
+  });
+  return resp.data.data;
+}

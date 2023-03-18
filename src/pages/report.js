@@ -1,33 +1,86 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Table, Button, Modal, Upload, message } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import DashboardLayout from '../layouts/Dashboard'
-import { uploadReport } from '../services/report';
-import useAuth from '../hooks/useAuth'
+import { uploadReport, getReports } from '../services/report';
 
-const { Column } = Table;
 const { Dragger } = Upload;
 
-export default function PostsPage() {
+const columns = [
+  {
+    title: 'Report Name',
+    dataIndex: 'name',
+    key: 'name',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    sortDirections: ['descend', 'ascend']
+  },
+  {
+    title: 'Created At',
+    dataIndex: 'created_at',
+    key: 'created_at',
+    sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+    sortDirections: ['descend', 'ascend']
+  },
+];
+
+export default function Report() {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isLoading, setLoading] = React.useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [fileList, setFileList] = useState(null);
-  const { isAuthenticated } = useAuth()
-  console.log('========>isAuthenticated : ', isAuthenticated)
-  const data = [
-    {
-      key: '1',
-      name: 'Report 1',
-    },
-    {
-      key: '2',
-      name: 'Report 2',
-    },
-    {
-      key: '3',
-      name: 'Report 3',
-    },
-  ];
+
+  const [data, setData] = useState([]);
+  const [keyword, setKeyword] = useState('');
+  const [orderBy, setOrderBy] = useState('created_at_ascending');
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+
+  const handleTableChange = (pagination, _, sorter) => {
+    setPagination(pagination);
+
+    if (sorter) {
+      let currentOrderBy = ""
+      if (sorter.order === 'descend' && sorter.field === 'created_at') {
+        currentOrderBy = "created_at_descending"
+      } else if (sorter.order === 'ascend' && sorter.field === 'created_at') {
+        currentOrderBy = "created_at_ascending"
+      } else if (sorter.order === 'name' && sorter.field === 'created_at') {
+        currentOrderBy = "name_ascending"
+      } else if (sorter.order === 'name' && sorter.field === 'created_at') {
+        currentOrderBy = "name_ascending"
+      }
+      setOrderBy(currentOrderBy);
+    }
+  };
+// Define the fetchData function using useCallback to memoize it
+const fetchData = useCallback(async () => {
+  console.log('========> : fetchData' )
+  setLoading(true);
+
+  try {
+    const resp = await getReports({
+      page: pagination.current,
+      perPage: pagination.pageSize,
+      keyword,
+      orderBy,
+    });
+    setData(resp.records);
+    setPagination({ ...pagination, total: resp.total });
+  } catch (error) {
+    console.error(error);
+  }
+
+  setLoading(false);
+}, [pagination.current, pagination.pageSize, keyword, orderBy]);
+  console.log('========>pagination : ', pagination)
+  // useEffect(() => {
+  //   // Call the fetchData function
+  //   fetchData();
+  // }, [fetchData]);
+
+  useEffect(() => {
+    console.log('========> : useEffect' )
+  // Call the fetchData function
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateReport = () => {
     setIsModalVisible(true);
@@ -40,6 +93,7 @@ export default function PostsPage() {
       setIsModalVisible(false);
       setFileList([])
       message.success('Report successfully uploaded!');
+      fetchData();
     } else {
       message.error(error);
     }
@@ -56,6 +110,11 @@ export default function PostsPage() {
       onSuccess("ok");
     }, 0);
   };
+
+  // const handleSearch = (keyword) => {
+  //   setKeyword(keyword);
+  //   setPagination({ current: 1, pageSize: pagination.pageSize, total: pagination.total });
+  // };
 
   const draggerProps = {
     name: 'report',
@@ -98,9 +157,15 @@ export default function PostsPage() {
         <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16 }}>
           Create New Report
         </Button>
-        <Table dataSource={data}>
-          <Column title="Report Name" dataIndex="name" key="name" />
-        </Table>
+        <Table
+          dataSource={data}
+          columns={columns}
+          pagination={pagination}
+          loading={isLoading}
+          onChange={handleTableChange}
+          rowKey='id'
+          size='small'
+        />
         <Modal
           title="Upload File"
           visible={isModalVisible}
