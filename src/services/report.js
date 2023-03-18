@@ -3,7 +3,7 @@ import { getAuthToken } from './auth';
 
 export async function uploadReport(file) {
   const formData = new FormData();
-  formData.append('report', file);
+  formData.append('file', file);
 
   try {
     const resp = await createAxios({ token: getAuthToken() }).post('/reports', formData, {

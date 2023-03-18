@@ -4,20 +4,21 @@ import SignInPage from './pages/sign-in'
 import SignUpPage from './pages/sign-up'
 import ReportsPage from './pages/reports'
 import PrivateRoute from './components/PrivateRoute'
-// import NoMatch from 'components/NoMatch'
+import PublicRoute from './components/PublicRoute'
+import NoMatch from './components/NoMatch'
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Switch>
         <Route exact path="/">
-          <Redirect to="/sign-up" />
+          <Redirect to="/sign-in" />
         </Route>
-        <Route exact path="/sign-up" component={SignUpPage} />
-        <Route exact path="/sign-in" component={SignInPage} />
+        <PublicRoute exact path="/sign-up" component={SignUpPage} />
+        <PublicRoute exact path="/sign-in" component={SignInPage} />
         <PrivateRoute path="/reports" component={ReportsPage} />
 
-        {/* <Route component={NoMatch} /> */}
+        <Route component={NoMatch} />
       </Switch>
     </BrowserRouter>
   )

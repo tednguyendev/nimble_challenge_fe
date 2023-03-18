@@ -18,7 +18,7 @@ export async function signIn({ email, password }) {
     return {
       success: false,
       data: null,
-      error: error.response.data.errors.message,
+      error: error.response.data.message,
     };
   }
 }

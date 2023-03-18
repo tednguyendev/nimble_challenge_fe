@@ -15,10 +15,10 @@ function SignIn() {
     setLoading(true);
     setMessage(null);
     const resp = await signIn(values);
-    setLoading(false);
+
     if (resp.success) {
-      setAuthToken(resp.data.token);
-      history.replace('/sign-up');
+      setAuthToken(resp.data.data.token);
+      history.replace('/reports');
     } else {
       setMessage(resp.error);
       setLoading(false);
@@ -62,6 +62,7 @@ function SignIn() {
             autoFocus={true}
             prefix={<MailOutlined className="site-form-item-icon" />}
             placeholder="Email"
+            disabled={isLoading}
           />
         </Form.Item>
         <Form.Item
@@ -76,6 +77,7 @@ function SignIn() {
             prefix={<LockOutlined className="site-form-item-icon" />}
             type="password"
             placeholder="Password"
+            disabled={isLoading}
           />
         </Form.Item>
         {/* <Form.Item>
@@ -90,7 +92,8 @@ function SignIn() {
             htmlType="submit"
             className="login-form-button"
             style={{ width: '100%' }}
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             Sign In
           </Button>
           <div>

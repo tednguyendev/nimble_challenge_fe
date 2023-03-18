@@ -2,13 +2,16 @@ import React, { useState } from 'react'
 import { Table, Button, Modal, Upload, message } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import DashboardLayout from '../layouts/Dashboard'
+import { uploadReport } from '../services/report';
+import useAuth from '../hooks/useAuth'
 
 const { Column } = Table;
 const { Dragger } = Upload;
 
 export default function PostsPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const { isAuthenticated } = useAuth()
+console.log('========>isAuthenticated : ', isAuthenticated)
   const data = [
     {
       key: '1',
@@ -28,20 +31,31 @@ export default function PostsPage() {
     setIsModalVisible(true);
   };
 
-  const handleModalOk = () => {
-    setIsModalVisible(false);
-    message.success('Report successfully uploaded!');
+  const handleModalOk = async file => {
+    const { success, error } = await uploadReport(file);
+    if (success) {
+      setIsModalVisible(false);
+      message.success('Report successfully uploaded!');
+    } else {
+      message.error(error);
+    }
   };
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
   };
 
+  const dummyRequest = ({ _, onSuccess }) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+
   const draggerProps = {
     name: 'report',
     multiple: false,
     showUploadList: false,
-    action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76', // replace with your own API endpoint
+    customRequest: dummyRequest,
     beforeUpload: file => {
       const isCSV = file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
       if (!isCSV) {

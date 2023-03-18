@@ -6,14 +6,15 @@ import { clearAuthToken } from '../../services/auth'
 
 export default function SignOutButton() {
   const history = useHistory()
-  const onSignOutClick = React.useCallback(() => {
+
+  const onSignOutClick = () => {
     clearAuthToken()
     history.replace('/sign-in')
-  }, [history])
+  }
 
   return (
     <Popconfirm
-      placement="topLeft"
+      placement="leftTop"
       title="Are you sure that you want to sign out?"
       onConfirm={onSignOutClick}
       okText="Yes"
