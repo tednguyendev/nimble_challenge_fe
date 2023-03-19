@@ -1,16 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Table, Button, Modal, Upload, message } from 'antd';
+import { Table, Button, Modal, Upload, message, Input } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import DashboardLayout from '../layouts/Dashboard'
 import { uploadReport, getReports } from '../services/report';
 
 const { Dragger } = Upload;
+const { Search } = Input;
 
 const columns = [
   {
     title: 'Report Name',
     dataIndex: 'name',
     key: 'name',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    sortDirections: ['descend', 'ascend']
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+    render: (status) => status.charAt(0).toUpperCase() + status.slice(1),
+    sortDirections: ['descend', 'ascend']
+  },
+  {
+    title: 'Percentage',
+    dataIndex: 'percentage',
+    key: 'percentage',
     sorter: (a, b) => a.name.localeCompare(b.name),
     sortDirections: ['descend', 'ascend']
   },
@@ -26,11 +42,12 @@ const columns = [
 export default function Report() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [name, setName] = useState('');
   const [fileList, setFileList] = useState(null);
 
   const [data, setData] = useState([]);
   const [keyword, setKeyword] = useState('');
-  const [orderBy, setOrderBy] = useState('created_at_ascending');
+  const [orderBy, setOrderBy] = useState('');
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
   const handleTableChange = (pagination, _, sorter) => {
@@ -42,42 +59,36 @@ export default function Report() {
         currentOrderBy = "created_at_descending"
       } else if (sorter.order === 'ascend' && sorter.field === 'created_at') {
         currentOrderBy = "created_at_ascending"
-      } else if (sorter.order === 'name' && sorter.field === 'created_at') {
-        currentOrderBy = "name_ascending"
-      } else if (sorter.order === 'name' && sorter.field === 'created_at') {
+      } else if (sorter.order === 'descend' && sorter.field === 'name') {
+        currentOrderBy = "name_descending"
+      } else if (sorter.order === 'ascend' && sorter.field === 'name') {
         currentOrderBy = "name_ascending"
       }
       setOrderBy(currentOrderBy);
     }
   };
-// Define the fetchData function using useCallback to memoize it
-const fetchData = useCallback(async () => {
-  console.log('========> : fetchData' )
-  setLoading(true);
 
-  try {
-    const resp = await getReports({
-      page: pagination.current,
-      perPage: pagination.pageSize,
-      keyword,
-      orderBy,
-    });
-    setData(resp.records);
-    setPagination({ ...pagination, total: resp.total });
-  } catch (error) {
-    console.error(error);
-  }
+  const fetchData = useCallback(async () => {
+    console.log('========>fetchData : ')
+    setLoading(true);
 
-  setLoading(false);
-}, [pagination.current, pagination.pageSize, keyword, orderBy]);
-  console.log('========>pagination : ', pagination)
-  // useEffect(() => {
-  //   // Call the fetchData function
-  //   fetchData();
-  // }, [fetchData]);
+    try {
+      const resp = await getReports({
+        page: pagination.current,
+        perPage: pagination.pageSize,
+        keyword,
+        orderBy,
+      });
+      setData(resp.records);
+      setPagination({ ...pagination, total: resp.total });
+    } catch (error) {
+      console.error(error);
+    }
+
+    setLoading(false);
+  }, [pagination.current, pagination.pageSize, keyword, orderBy]);
 
   useEffect(() => {
-    console.log('========> : useEffect' )
   // Call the fetchData function
     fetchData();
   }, [fetchData]);
@@ -88,20 +99,21 @@ const fetchData = useCallback(async () => {
 
   const handleModalOk = async _ => {
     setLoading(true);
-    const { success, error } = await uploadReport(fileList[0]);
+    const { success, error } = await uploadReport(fileList[0], name);
     if (success) {
       setIsModalVisible(false);
+      setName('');
       setFileList([])
       message.success('Report successfully uploaded!');
       fetchData();
     } else {
       message.error(error);
     }
-    setLoading(false);
   };
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
+    setName('');
     setFileList([])
   };
 
@@ -111,10 +123,18 @@ const fetchData = useCallback(async () => {
     }, 0);
   };
 
-  // const handleSearch = (keyword) => {
-  //   setKeyword(keyword);
-  //   setPagination({ current: 1, pageSize: pagination.pageSize, total: pagination.total });
-  // };
+  const handleSearch = (value) => {
+    setKeyword(value);
+    setPagination({ ...pagination, current: 1 });
+  };
+  
+  const onSearch = (value) => {
+    handleSearch(value);
+  };
+  
+  const handleClearSearch = () => {
+    handleSearch('');
+  };
 
   const draggerProps = {
     name: 'report',
@@ -154,9 +174,22 @@ const fetchData = useCallback(async () => {
   return (
     <DashboardLayout>
       <div>
-        <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16 }}>
+        <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16, marginRight: 16 }}>
           Create New Report
         </Button>
+        <Search
+          placeholder="Search by report name by keywords"
+          allowClear
+          enterButton="Search"
+          size="middle"
+          onSearch={onSearch}
+          style={{ width: 400 }}
+        />
+        {keyword && (
+          <Button type="link" onClick={handleClearSearch} disabled={isLoading}>
+              Clear Search
+          </Button>
+        )}
         <Table
           dataSource={data}
           columns={columns}
@@ -174,12 +207,19 @@ const fetchData = useCallback(async () => {
           okButtonProps={{ disabled: isLoading }}
           cancelButtonProps={{ disabled: isLoading }}
         >
+          <Input
+            placeholder="Name (optional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
           <Dragger {...draggerProps}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">Click or drag file to this area to upload</p>
             <p className="ant-upload-hint">Support for a single CSV file upload. Maximum size: 10MB.</p>
+            <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
           </Dragger>
         </Modal>
       </div>

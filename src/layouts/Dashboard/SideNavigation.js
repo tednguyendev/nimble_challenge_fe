@@ -35,7 +35,7 @@ export default function SideNavigation() {
           margin: 0,
         }}
       >
-        Nimble crawler
+        Nimble scraper
       </Typography.Title>
 
       <Menu
