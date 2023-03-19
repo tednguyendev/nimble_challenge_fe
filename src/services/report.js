@@ -37,3 +37,20 @@ export async function getReports({ page = 1, perPage = 10, keyword = '', orderBy
   });
   return resp.data.data;
 }
+
+export async function getReport(reportId) {
+  try {
+    const resp = await createAxios({ token: getAuthToken() }).get('/reports/' + reportId);
+    return {
+      success: true,
+      data: resp.data.data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      error: error.response.data.message,
+    };
+  }
+}
