@@ -30,7 +30,7 @@ console.log('========>downloadingKeywords : ', downloadingKeywords)
 
   const columns = [
     {
-      title: 'Value',
+      title: 'Keyword',
       dataIndex: 'value',
       key: 'value'
     },
