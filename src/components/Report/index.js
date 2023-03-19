@@ -87,7 +87,8 @@ export default function Report() {
       dataIndex: 'percentage',
       key: 'percentage',
       sorter: (a, b) => a.percentage - b.percentage,
-      sortDirections: ['descend', 'ascend']
+      sortDirections: ['descend', 'ascend'],
+      render: (p) => p + "%",
     },
     {
       title: 'Created At',
@@ -256,13 +257,7 @@ export default function Report() {
           <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
         </Dragger>
       </Modal>
-      <Modal
-        visible={selectedReportId !== null}
-        onCancel={() => setSelectedReportId(null)}
-        footer={null}
-      >
-        <ReportDetail reportId={selectedReportId} />
-      </Modal>
+      <ReportDetail selectedReportId={selectedReportId} setSelectedReportId={setSelectedReportId} reportId={selectedReportId} />
     </div>
   )
 }
