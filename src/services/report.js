@@ -1,9 +1,10 @@
 import { createAxios } from '../config/axios';
 import { getAuthToken } from './auth';
 
-export async function uploadReport(file) {
+export async function uploadReport(file, name) {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('name', name);
 
   try {
     const resp = await createAxios({ token: getAuthToken() }).post('/reports', formData, {
@@ -25,7 +26,7 @@ export async function uploadReport(file) {
   }
 }
 
-export async function getReports({ page = 1, perPage = 10, keyword = '', orderBy = 'created_at_ascending' }) {
+export async function getReports({ page = 1, perPage = 10, keyword = '', orderBy = '' }) {
   const resp = await createAxios({ token: getAuthToken() }).get('/reports', {
     params: {
       page,

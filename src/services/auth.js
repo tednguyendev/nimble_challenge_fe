@@ -45,14 +45,14 @@ export async function signUp({ email, password }) {
 }
 
 export function setAuthToken(token) {
-  Cookies.set('nimble-crawler-token', token);
+  Cookies.set('nimble-scraper-token', token);
   return token;
 }
 
 export function getAuthToken() {
-  return Cookies.get('nimble-crawler-token');
+  return Cookies.get('nimble-scraper-token');
 }
 
 export function clearAuthToken() {
-  Cookies.remove('nimble-crawler-token');
+  Cookies.remove('nimble-scraper-token');
 }

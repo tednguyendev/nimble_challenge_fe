@@ -7,7 +7,7 @@ function DefaultLayout({ children, ...props }) {
   return (
     <Layout>
       <Header>
-        <h2 style={{ color: '#fff' }}>Nimble Crawler</h2>
+        <h2 style={{ color: '#fff' }}>Nimble Scraper</h2>
       </Header>
       <Content>{children}</Content>
       <Footer style={{ textAlign: 'center' }}>Powered By Nimble</Footer>
