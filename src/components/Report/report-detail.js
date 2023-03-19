@@ -4,29 +4,49 @@ import { getReport } from "../../services/report";
 import { useHistory } from 'react-router-dom';
 import { getScrapedPage } from '../../services/keyword'
 
+const shouldSpin = (record, report) => record.status === "pending" && report.status !== 'failed'
+
 export default function ReportDetail ({ reportId, setSelectedReportId }) {
   const history = useHistory();
   const [report, setReport] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [err, setErr] = useState(null);
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
-console.log('========>downloadingKeywords : ', downloadingKeywords)
+  const [isPolling, setIsPolling] = useState(false);
+
   useEffect(() => {
-    if (!err && (reportId && (!report || report?.status === 'pending'))) {
-      const intervalId = setInterval(async () => {
-        const result = await getReport(reportId);
+    async function fetchReport() {
+      const result = await getReport(reportId);
 
-        if (result.success) {
-          setReport(result.data.record);
-        } else {
-          message.error(result.error);
-          setErr(result.error)
+      if (result.success) {
+        const notTheFirstFetch = report
+
+        if (notTheFirstFetch) {
+          setIsPolling(true)
         }
-      }, 4000);
+        setReport(result.data.record);
+      } else {
+        message.error(result.error);
+        setErr(result.error);
+      }
+    }
 
-      return () => clearInterval(intervalId);
+    const modalIsOpen = reportId
+    const isPending = !report || report.status === 'pending'
+
+    if (!err && modalIsOpen && isPending) {
+      const interval = setInterval(fetchReport, 4000);
+
+      return () => clearInterval(interval);
     }
   }, [reportId, report?.status, err]);
+
+  useEffect(() => {
+    console.log('========>isPolling : ', isPolling)
+    if (isPolling && report?.status === 'failed') {
+      message.error('System currently out of capacity. Please try again after some minutes.')
+    }
+  }, [report?.status, isPolling]);
 
   const columns = [
     {
@@ -38,19 +58,19 @@ console.log('========>downloadingKeywords : ', downloadingKeywords)
       title: 'Ad Words Count',
       dataIndex: 'ad_words_count',
       key: 'ad_words_count',
-      render: (ad_words_count, record) => record.status === "pending" ? <Spin /> : ad_words_count,
+      render: (ad_words_count, record) => shouldSpin(record, report) ? <Spin /> : ad_words_count,
     },
     {
       title: 'Links Count',
       dataIndex: 'links_count',
       key: 'links_count',
-      render: (links_count, record) => record.status === "pending" ? <Spin /> : links_count,
+      render: (links_count, record) => shouldSpin(record, report) ? <Spin /> : links_count,
     },
     {
       title: 'Total Results',
       dataIndex: 'total_results',
       key: 'total_results',
-      render: (num, record) => record.status === "pending" ? <Spin /> : (
+      render: (num, record) => shouldSpin(record, report) ? <Spin /> : (
         num ? (
           <Tooltip title={num.toLocaleString()}>
             {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(num)}
@@ -62,7 +82,7 @@ console.log('========>downloadingKeywords : ', downloadingKeywords)
       title: 'Search Time',
       dataIndex: 'search_time',
       key: 'search_time',
-      render: (search_time, record) => record.status === "pending" ? <Spin /> : search_time,
+      render: (search_time, record) => shouldSpin(record, report) ? <Spin /> : search_time,
     },
     {
       title: 'Status',
@@ -74,11 +94,17 @@ console.log('========>downloadingKeywords : ', downloadingKeywords)
       title: 'Scraped HTML page',
       dataIndex: 'id',
       key: 'id',
-      render: (id, record) => (record.status === "pending" || downloadingKeywords.includes(id)) ? <Spin /> : (
-        <a href="#" role="button" onClick={() => handleDownload(id, record)}>
-          Click here to download
-        </a>
-      )
+      render: (id, record) =>
+      (shouldSpin(record, report) || downloadingKeywords.includes(id))
+        ? <Spin />
+        : (
+          (record.status === "success")
+          ? (
+            <a href="#" role="button" onClick={() => handleDownload(id, record)}>
+              Click here to download
+            </a>
+          ) : (<></>)
+        )
     },
     {
       title: 'Google search url',
@@ -97,6 +123,7 @@ console.log('========>downloadingKeywords : ', downloadingKeywords)
     setReport(null)
     setErr(null)
     setDownloadingKeywords([])
+    setIsPolling(false)
     history.replace('/reports');
   };
 
