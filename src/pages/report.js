@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Table, Button, Modal, Upload, message, Input } from 'antd';
+import { Table, Button, Modal, Upload, message, Input, Row, Col } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import DashboardLayout from '../layouts/Dashboard'
 import { uploadReport, getReports } from '../services/report';
+import { ReloadOutlined } from '@ant-design/icons';
 
 const { Dragger } = Upload;
 const { Search } = Input;
@@ -27,7 +28,7 @@ const columns = [
     title: 'Percentage',
     dataIndex: 'percentage',
     key: 'percentage',
-    sorter: (a, b) => a.name.localeCompare(b.name),
+    sorter: (a, b) => a.percentage - b.percentage,
     sortDirections: ['descend', 'ascend']
   },
   {
@@ -63,13 +64,19 @@ export default function Report() {
         currentOrderBy = "name_descending"
       } else if (sorter.order === 'ascend' && sorter.field === 'name') {
         currentOrderBy = "name_ascending"
+      } else if (sorter.order === 'descend' && sorter.field === 'status') {
+        currentOrderBy = "status_descending"
+      } else if (sorter.order === 'ascend' && sorter.field === 'status') {
+        currentOrderBy = "status_ascending"
+      } else if (sorter.order === 'descend' && sorter.field === 'percentage') {
+        currentOrderBy = "percentage_descending"
+      } else if (sorter.order === 'ascend' && sorter.field === 'percentage') {
+        currentOrderBy = "percentage_ascending"
       }
       setOrderBy(currentOrderBy);
     }
   };
-
   const fetchData = useCallback(async () => {
-    console.log('========>fetchData : ')
     setLoading(true);
 
     try {
@@ -87,6 +94,8 @@ export default function Report() {
 
     setLoading(false);
   }, [pagination.current, pagination.pageSize, keyword, orderBy]);
+
+  console.log('========>data : ', data)
 
   useEffect(() => {
   // Call the fetchData function
@@ -132,10 +141,6 @@ export default function Report() {
     handleSearch(value);
   };
   
-  const handleClearSearch = () => {
-    handleSearch('');
-  };
-
   const draggerProps = {
     name: 'report',
     multiple: false,
@@ -171,58 +176,70 @@ export default function Report() {
     },
   };
 
+  const handleReload = () => {
+    fetchData()
+  };
+
   return (
     <DashboardLayout>
-      <div>
-        <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16, marginRight: 16 }}>
-          Create New Report
-        </Button>
-        <Search
-          placeholder="Search by report name by keywords"
-          allowClear
-          enterButton="Search"
-          size="middle"
-          onSearch={onSearch}
-          style={{ width: 400 }}
-        />
-        {keyword && (
-          <Button type="link" onClick={handleClearSearch} disabled={isLoading}>
-              Clear Search
-          </Button>
-        )}
-        <Table
-          dataSource={data}
-          columns={columns}
-          pagination={pagination}
-          loading={isLoading}
-          onChange={handleTableChange}
-          rowKey='id'
-          size='small'
-        />
-        <Modal
-          title="Upload File"
-          visible={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={handleModalCancel}
-          okButtonProps={{ disabled: isLoading }}
-          cancelButtonProps={{ disabled: isLoading }}
-        >
-          <Input
-            placeholder="Name (optional)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ marginBottom: 16 }}
+      <Row>
+        <Col flex="auto">
+          <Search
+            placeholder="Search by report name or by keywords"
+            allowClear
+            enterButton="Search"
+            size="middle"
+            onSearch={onSearch}
+            style={{ width: 400 }}
           />
-          <Dragger {...draggerProps}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">Click or drag file to this area to upload</p>
-            <p className="ant-upload-hint">Support for a single CSV file upload. Maximum size: 10MB.</p>
-            <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
-          </Dragger>
-        </Modal>
-      </div>
+        </Col>
+        <Col flex="35px">
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleReload}
+            style={{marginRight: '20px'}}
+          >
+            Reload
+          </Button>
+        </Col>
+        <Col>
+          <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16, marginRight: 16 }}>
+            Create New Report
+          </Button>
+        </Col>
+      </Row>
+      <Table
+        dataSource={data}
+        columns={columns}
+        pagination={pagination}
+        loading={isLoading}
+        onChange={handleTableChange}
+        rowKey='id'
+        size='small'
+      />
+      <Modal
+        title="Upload File"
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        okButtonProps={{ disabled: isLoading }}
+        cancelButtonProps={{ disabled: isLoading }}
+      >
+        <Input
+          placeholder="Name (optional)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{ marginBottom: 16 }}
+        />
+        <Dragger {...draggerProps}>
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Click or drag file to this area to upload</p>
+          <p className="ant-upload-hint">Support for a single CSV file upload. Maximum size: 10MB.</p>
+          <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
+        </Dragger>
+      </Modal>
     </DashboardLayout>
   )
 }
