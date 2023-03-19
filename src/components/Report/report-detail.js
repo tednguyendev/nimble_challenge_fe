@@ -2,77 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Progress, Table, Modal, Spin, Tooltip, Input, Alert, message } from "antd";
 import { getReport } from "../../services/report";
 import { useHistory } from 'react-router-dom';
-
-const columns = [
-  {
-    title: 'Value',
-    dataIndex: 'value',
-    key: 'value'
-  },
-  {
-    title: 'Ad Words Count',
-    dataIndex: 'ad_words_count',
-    key: 'ad_words_count',
-    render: (ad_words_count, record) => record.status === "pending" ? <Spin /> : ad_words_count,
-  },
-  {
-    title: 'Links Count',
-    dataIndex: 'links_count',
-    key: 'links_count',
-    render: (links_count, record) => record.status === "pending" ? <Spin /> : links_count,
-  },
-  {
-    title: 'Total Results',
-    dataIndex: 'total_results',
-    key: 'total_results',
-    render: (num, record) => record.status === "pending" ? <Spin /> : (
-      num ? (
-        <Tooltip title={num.toLocaleString()}>
-          {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(num)}
-        </Tooltip>
-      ) : num
-    ),
-  },
-  {
-    title: 'Search Time',
-    dataIndex: 'search_time',
-    key: 'search_time',
-    render: (search_time, record) => record.status === "pending" ? <Spin /> : search_time,
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    key: 'status',
-    render: (status) => status.charAt(0).toUpperCase() + status.slice(1),
-  },
-  {
-    title: 'Scraped HTML page',
-    dataIndex: 'id',
-    key: 'id',
-    render: (id, record) => record.status === "pending" ? <Spin /> : (
-      <a href={id} >
-        Click here to download
-      </a>
-    )
-  },
-  {
-    title: 'Google search url',
-    dataIndex: 'origin_page',
-    key: 'origin_page',
-    render: (page) => (
-      <a target="_blank" href={page} rel="noreferrer">
-        Click here to go
-      </a>
-    )
-  }
-];
+import { getScrapedPage } from '../../services/keyword'
 
 export default function ReportDetail ({ reportId, setSelectedReportId }) {
   const history = useHistory();
   const [report, setReport] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [err, setErr] = useState(null);
-
+  const [downloadingKeywords, setDownloadingKeywords] = useState([]);
+console.log('========>downloadingKeywords : ', downloadingKeywords)
   useEffect(() => {
     if (!err && (reportId && (!report || report?.status === 'pending'))) {
       const intervalId = setInterval(async () => {
@@ -90,14 +28,96 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
     }
   }, [reportId, report?.status, err]);
 
+  const columns = [
+    {
+      title: 'Value',
+      dataIndex: 'value',
+      key: 'value'
+    },
+    {
+      title: 'Ad Words Count',
+      dataIndex: 'ad_words_count',
+      key: 'ad_words_count',
+      render: (ad_words_count, record) => record.status === "pending" ? <Spin /> : ad_words_count,
+    },
+    {
+      title: 'Links Count',
+      dataIndex: 'links_count',
+      key: 'links_count',
+      render: (links_count, record) => record.status === "pending" ? <Spin /> : links_count,
+    },
+    {
+      title: 'Total Results',
+      dataIndex: 'total_results',
+      key: 'total_results',
+      render: (num, record) => record.status === "pending" ? <Spin /> : (
+        num ? (
+          <Tooltip title={num.toLocaleString()}>
+            {new Intl.NumberFormat('en-US', { notation: 'compact' }).format(num)}
+          </Tooltip>
+        ) : num
+      ),
+    },
+    {
+      title: 'Search Time',
+      dataIndex: 'search_time',
+      key: 'search_time',
+      render: (search_time, record) => record.status === "pending" ? <Spin /> : search_time,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => status.charAt(0).toUpperCase() + status.slice(1),
+    },
+    {
+      title: 'Scraped HTML page',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id, record) => (record.status === "pending" || downloadingKeywords.includes(id)) ? <Spin /> : (
+        <a href="#" role="button" onClick={() => handleDownload(id, record)}>
+          Click here to download
+        </a>
+      )
+    },
+    {
+      title: 'Google search url',
+      dataIndex: 'origin_page',
+      key: 'origin_page',
+      render: (page) => (
+        <a target="_blank" href={page} rel="noreferrer">
+          Click here to go
+        </a>
+      )
+    }
+  ];
+
   const handleModalCancel = () => {
     setSelectedReportId(null)
     setReport(null)
     setErr(null)
+    setDownloadingKeywords([])
     history.replace('/reports');
   };
 
+  const handleDownload = async (id, record) => {
+    try {
+      setDownloadingKeywords((prev) => prev.concat(id))
+
+      const result = await getScrapedPage(id, record.value);
+
+      if (!result.success) {
+        message.error(result.error);
+      }
+
+      setDownloadingKeywords((prev) => prev.filter((cid) => cid !== id))
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const filteredData = report?.keywords.filter((record) => record.value.toLowerCase().includes(searchText.toLowerCase())) || [];
+
   return(
     <Modal
       visible={reportId !== null}

@@ -53,5 +53,4 @@ export async function getReport(reportId) {
       error: error.response.data.message,
     };
   }
-
 }
