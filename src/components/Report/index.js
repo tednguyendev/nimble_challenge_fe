@@ -4,13 +4,15 @@ import { InboxOutlined } from '@ant-design/icons';
 import { uploadReport, getReports } from '../../services/report';
 import { ReloadOutlined } from '@ant-design/icons';
 import ReportDetail from './report-detail'
+import { useHistory } from 'react-router-dom';
 
 import './style.scss'
 
 const { Dragger } = Upload;
 const { Search } = Input;
 
-export default function Report() {
+export default function Report({ reportId }) {
+  const history = useHistory();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -20,7 +22,7 @@ export default function Report() {
   const [keyword, setKeyword] = useState('');
   const [orderBy, setOrderBy] = useState('');
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
 
   const handleTableChange = (pagination, _, sorter) => {
     setPagination(pagination);
@@ -101,7 +103,7 @@ export default function Report() {
       title: 'Action',
       key: 'id',
       render: (_, record) => (
-        <Button onClick={() => setSelectedReportId(record.id)}>View Detail</Button>
+        <Button onClick={() => handleOpenReportModal(record.id)}>View Detail</Button>
       ),
     }
   ];
@@ -117,13 +119,14 @@ export default function Report() {
 
   const handleModalOk = async _ => {
     setLoading(true);
-    const { success, error } = await uploadReport(fileList[0], name);
+    const { success, data, error } = await uploadReport(fileList[0], name);
     if (success) {
       setIsModalVisible(false);
       setName('');
       setFileList([])
       message.success('Report successfully uploaded!');
       fetchData();
+      handleOpenReportModal(data.data.id)
     } else {
       message.error(error);
     }
@@ -189,6 +192,13 @@ export default function Report() {
     fetchData()
   };
 
+  const handleOpenReportModal = (id) => {
+    setSelectedReportId(id)
+    if (id) {
+      history.replace('/reports/' + id);
+    }
+  };
+
   return (
     <div>
       <Row>
@@ -229,26 +239,29 @@ export default function Report() {
         onRow={(record, rowIndex) => {
           return {
             onClick: (_) => {
-              setSelectedReportId(record.id);
+              handleOpenReportModal(record.id);
             },
           };
         }}
       />
       <Modal
-        title="Upload File"
+        title="Create New Report"
         visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okButtonProps={{ disabled: isLoading }}
+        okButtonProps={{ disabled: isLoading || fileList?.length === 0 }}
         cancelButtonProps={{ disabled: isLoading }}
       >
+        <label htmlFor="report-name" style={{ fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>Name(optional):</label>
         <Input
-          placeholder="Name (optional)"
+          id="report-name"
+          placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           style={{ marginBottom: 16 }}
         />
-        <Dragger {...draggerProps}>
+        <label htmlFor="csv-dragger" style={{ fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>File:</label>
+        <Dragger {...draggerProps} id="csv-dragger">
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
@@ -257,7 +270,7 @@ export default function Report() {
           <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
         </Dragger>
       </Modal>
-      <ReportDetail selectedReportId={selectedReportId} setSelectedReportId={setSelectedReportId} reportId={selectedReportId} />
+      <ReportDetail setSelectedReportId={handleOpenReportModal} reportId={selectedReportId} />
     </div>
   )
 }

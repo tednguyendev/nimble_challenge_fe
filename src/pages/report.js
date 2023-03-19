@@ -2,12 +2,12 @@ import React from "react";
 import Report from "../components/Report";
 import DashboardLayout from '../layouts/Dashboard'
 
-function SignInPage() {
+function ReportPage(props) {
   return (
     <DashboardLayout>
-      <Report />
+      <Report reportId={props?.computedMatch?.params?.reportId}/>
     </DashboardLayout>
   );
 }
 
-export default SignInPage;
+export default ReportPage;
