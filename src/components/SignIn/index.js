@@ -6,10 +6,22 @@ import { useHistory } from 'react-router-dom';
 import './style.scss';
 import { signIn, setAuthToken } from '../../services/auth';
 
-function SignIn() {
+const getInitMessage = (accountVerifyStatus) => {
+  if (accountVerifyStatus === 'success') {
+    return 'Your account has been verified, please sign in.';
+  }
+
+  if (accountVerifyStatus === 'fail') {
+    return 'Your account verification has failed, please try again.';
+  }
+
+  return null
+}
+
+function SignIn({ accountVerifyStatus }) {
   const history = useHistory();
   const [isLoading, setLoading] = React.useState(false);
-  const [message, setMessage] = React.useState(null);
+  const [message, setMessage] = React.useState(getInitMessage(accountVerifyStatus));
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -47,7 +59,7 @@ function SignIn() {
         onFinish={onFinish}>
         {message && (
           <Form.Item>
-            <Typography.Text type="danger">{message}</Typography.Text>
+            <Typography.Text type={accountVerifyStatus === 'success' ? 'success' : 'danger'}>{message}</Typography.Text>
           </Form.Item>
         )}
         <Form.Item
@@ -80,11 +92,6 @@ function SignIn() {
             disabled={isLoading}
           />
         </Form.Item>
-        {/* <Form.Item>
-          <Form.Item name="remember" valuePropName="checked" noStyle>
-            <Checkbox>Remember me</Checkbox>
-          </Form.Item>
-        </Form.Item> */}
 
         <Form.Item>
           <Button

@@ -2,10 +2,10 @@ import React from "react";
 import DefaultLayout from "../layouts/default";
 import SignIn from "../components/SignIn";
 
-function SignInPage() {
+function SignInPage(props) {
   return (
     <DefaultLayout>
-      <SignIn />
+      <SignIn accountVerifyStatus={new URLSearchParams(props.location.search).get('status')} />
     </DefaultLayout>
   );
 }

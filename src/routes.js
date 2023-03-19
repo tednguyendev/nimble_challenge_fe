@@ -15,8 +15,8 @@ function AppRoutes() {
         <Route exact path="/">
           <Redirect to="/sign-in" />
         </Route>
-        <PublicRoute exact path="/sign-up" component={SignUpPage} />
-        <PublicRoute exact path="/sign-in" component={SignInPage} />
+        <PublicRoute path="/sign-up" component={SignUpPage} />
+        <PublicRoute path="/sign-in" component={SignInPage} />
         <PrivateRoute exact path="/reports" component={ReportPage} />
         <PrivateRoute exact path="/reports/:reportId" component={ReportPage} />
 
