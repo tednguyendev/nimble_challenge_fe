@@ -54,3 +54,19 @@ export async function getReport(reportId) {
     };
   }
 }
+
+export async function retryReport(reportId) {
+  try {
+    await createAxios({ token: getAuthToken() }).post('/reports/' + reportId + '/retry');
+
+    return {
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response.data.message,
+    };
+  }
+}

@@ -270,7 +270,7 @@ export default function Report({ reportId }) {
           <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
         </Dragger>
       </Modal>
-      <ReportDetail setSelectedReportId={handleOpenReportModal} reportId={selectedReportId} />
+      <ReportDetail setSelectedReportId={handleOpenReportModal} reportId={selectedReportId} fetchData={fetchData} />
     </div>
   )
 }
