@@ -130,6 +130,7 @@ export default function Report({ reportId }) {
     } else {
       message.error(error);
     }
+    setLoading(false);
   };
 
   const handleModalCancel = () => {
