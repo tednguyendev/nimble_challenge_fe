@@ -13,10 +13,12 @@ export async function getScrapedPage(keywordId, keyword) {
     document.body.removeChild(link);
     return {
       success: true,
+      error: null,
     };
   } catch (error) {
     return {
       success: false,
+      error: error.response.data.message,
     };
   }
 }
