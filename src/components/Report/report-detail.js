@@ -184,7 +184,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
               size="medium"
               type="default"
             >
-              Reload
+              Retry
             </Button>
           )}
           </Col>
