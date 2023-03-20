@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Progress, Table, Modal, Spin, Tooltip, Input, Alert, message } from "antd";
-import { getReport } from "../../services/report";
+import { Progress, Table, Modal, Spin, Tooltip, Input, Alert, message, Button, Col, Row } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { getReport, retryReport } from "../../services/report";
 import { useHistory } from 'react-router-dom';
 import { getScrapedPage } from '../../services/keyword'
 
 const shouldSpin = (record, report) => record.status === "pending" && report.status !== 'failed'
 
-export default function ReportDetail ({ reportId, setSelectedReportId }) {
+export default function ReportDetail ({ reportId, setSelectedReportId, fetchData }) {
   const history = useHistory();
   const [report, setReport] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [err, setErr] = useState(null);
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     async function fetchReport() {
@@ -21,8 +23,11 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
       if (result.success) {
         const notTheFirstFetch = report
 
-        if (notTheFirstFetch) {
+        if (notTheFirstFetch && !isRetrying) {
           setIsPolling(true)
+        }
+        if (isRetrying) {
+          setIsRetrying(false)
         }
         setReport(result.data.record);
       } else {
@@ -34,15 +39,14 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
     const modalIsOpen = reportId
     const isPending = !report || report.status === 'pending'
 
-    if (!err && modalIsOpen && isPending) {
+    if (!err && modalIsOpen && (isPending || isRetrying)) {
       const interval = setInterval(fetchReport, 4000);
 
       return () => clearInterval(interval);
     }
-  }, [reportId, report?.status, err]);
+  }, [reportId, report?.status, err, isRetrying]);
 
   useEffect(() => {
-    console.log('========>isPolling : ', isPolling)
     if (isPolling && report?.status === 'failed') {
       message.error('System currently out of capacity. Please try again after some minutes.')
     }
@@ -124,6 +128,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
     setErr(null)
     setDownloadingKeywords([])
     setIsPolling(false)
+    fetchData()
     history.replace('/reports');
   };
 
@@ -143,6 +148,15 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
     }
   }
 
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    const result = await retryReport(reportId)
+
+    if (!result.success) {
+      message.error(result.error);
+    }
+  }
+
   const filteredData = report?.keywords.filter((record) => record.value.toLowerCase().includes(searchText.toLowerCase())) || [];
 
   return(
@@ -154,11 +168,32 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
       style={{ top: 100 }} // Add some padding from top
       bodyStyle={{ height: '80vh', overflowY: 'auto' }} // Set height to 80% of viewport and add vertical scroll if necessary
     >
-      {report ? (
+      {(report && !isRetrying) ? (
       <div>
         <h1>{report.name}</h1>
+        <Row>
+          <Col flex="auto">
+            <h2>{"Status: " + report.status.charAt(0).toUpperCase() + report.status.slice(1)}</h2>
+          </Col>
+          <Col>
+            {report.status === 'failed' && (
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRetry}
+              style={{ marginBottom: 12, marginRight: "20px" }}
+              size="medium"
+              type="default"
+            >
+              Reload
+            </Button>
+          )}
+          </Col>
+          <Col flex="200px">
+            <Input.Search placeholder="Search value" onChange={(e) => setSearchText(e.target.value)} style={{ width: 200 }} />
+          </Col>
+        </Row>
         {
-          report.status.toLowerCase() === 'pending' && (
+          report.status === 'pending' && (
             <Alert
               message="You can close this window and come back later for the result. We will also notify you through email, once the report is ready."
               type="info"
@@ -167,8 +202,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId }) {
             />
           )
         }
-        <Input.Search placeholder="Search value" onChange={(e) => setSearchText(e.target.value)} style={{ width: 200, float: 'right' }} />
-        <h2>{"Status: " + report.status.charAt(0).toUpperCase() + report.status.slice(1)}</h2>
         <Progress percent={report.percentage} />
         <Table dataSource={filteredData} columns={columns} />
       </div>
