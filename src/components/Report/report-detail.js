@@ -7,52 +7,8 @@ import { getScrapedPage } from '../../services/keyword'
 
 const shouldSpin = (record, report) => record.status === "pending" && report.status !== 'failed'
 
-export default function ReportDetail ({ reportId, setSelectedReportId, fetchData }) {
-  const history = useHistory();
-  const [report, setReport] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [err, setErr] = useState(null);
-  const [downloadingKeywords, setDownloadingKeywords] = useState([]);
-  const [isPolling, setIsPolling] = useState(false);
-  const [isRetrying, setIsRetrying] = useState(false);
-
-  useEffect(() => {
-    async function fetchReport() {
-      const result = await getReport(reportId);
-
-      if (result.success) {
-        const notTheFirstFetch = report
-
-        if (notTheFirstFetch && !isRetrying) {
-          setIsPolling(true)
-        }
-        if (isRetrying) {
-          setIsRetrying(false)
-        }
-        setReport(result.data.record);
-      } else {
-        message.error(result.error);
-        setErr(result.error);
-      }
-    }
-
-    const modalIsOpen = reportId
-    const isPending = !report || report.status === 'pending'
-
-    if (!err && modalIsOpen && (isPending || isRetrying)) {
-      const interval = setInterval(fetchReport, 4000);
-
-      return () => clearInterval(interval);
-    }
-  }, [reportId, report?.status, err, isRetrying]);
-
-  useEffect(() => {
-    if (isPolling && report?.status === 'failed') {
-      message.error('System currently out of capacity. Please try again after some minutes.')
-    }
-  }, [report?.status, isPolling]);
-
-  const columns = [
+const getColumns = (handleDownload, downloadingKeywords, report) => {
+  return [
     {
       title: 'Keyword',
       dataIndex: 'value',
@@ -121,6 +77,58 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
       )
     }
   ];
+}
+
+const getFilteredData = (report, searchText) => {
+  return report?.keywords.filter(
+    (record) => record.value.toLowerCase().includes(searchText.toLowerCase())
+  ) || []
+}
+
+export default function ReportDetail ({ reportId, setSelectedReportId, fetchData }) {
+  const history = useHistory();
+  const [report, setReport] = useState(null);
+  const [searchText, setSearchText] = useState('');
+  const [err, setErr] = useState(null);
+  const [downloadingKeywords, setDownloadingKeywords] = useState([]);
+  const [isPolling, setIsPolling] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  useEffect(() => {
+    async function fetchReport() {
+      const result = await getReport(reportId);
+
+      if (result.success) {
+        const notTheFirstFetch = report
+
+        if (notTheFirstFetch && !isRetrying) {
+          setIsPolling(true)
+        }
+        if (isRetrying) {
+          setIsRetrying(false)
+        }
+        setReport(result.data.record);
+      } else {
+        message.error(result.error);
+        setErr(result.error);
+      }
+    }
+
+    const modalIsOpen = reportId
+    const isPending = !report || report.status === 'pending'
+
+    if (!err && modalIsOpen && (isPending || isRetrying)) {
+      const interval = setInterval(fetchReport, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [reportId, report?.status, err, isRetrying]);
+
+  useEffect(() => {
+    if (isPolling && report?.status === 'failed') {
+      message.error('System currently out of capacity. Please try again after some minutes.')
+    }
+  }, [report?.status, isPolling]);
 
   const handleModalCancel = () => {
     setSelectedReportId(null)
@@ -137,7 +145,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
       setDownloadingKeywords((prev) => prev.concat(id))
 
       const result = await getScrapedPage(id, record.value);
-
       if (!result.success) {
         message.error(result.error);
       }
@@ -156,8 +163,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
       message.error(result.error);
     }
   }
-
-  const filteredData = report?.keywords.filter((record) => record.value.toLowerCase().includes(searchText.toLowerCase())) || [];
 
   return(
     <Modal
@@ -203,7 +208,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
           )
         }
         <Progress percent={report.percentage} />
-        <Table dataSource={filteredData} columns={columns} />
+        <Table dataSource={getFilteredData(report, searchText)} columns={getColumns(handleDownload, downloadingKeywords, report)} />
       </div>
     ) : (err ? (<div>{err}</div>) : (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
