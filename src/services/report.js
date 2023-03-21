@@ -1,5 +1,6 @@
 import { createAxios } from '../config/axios';
 import { getAuthToken } from './auth';
+import getError from '../utils/getError.util';
 
 export async function uploadReport(file, name) {
   const formData = new FormData();
@@ -21,7 +22,7 @@ export async function uploadReport(file, name) {
     return {
       success: false,
       data: null,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }
@@ -50,7 +51,7 @@ export async function getReport(reportId) {
     return {
       success: false,
       data: null,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }
@@ -66,7 +67,7 @@ export async function retryReport(reportId) {
   } catch (error) {
     return {
       success: false,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }

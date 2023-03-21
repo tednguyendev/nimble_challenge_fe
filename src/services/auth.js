@@ -2,6 +2,7 @@ import { createAxios } from '../config/axios';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import env from '../config/environment';
+import getError from '../utils/getError.util';
 
 export async function signIn({ email, password }) {
   try {
@@ -18,7 +19,7 @@ export async function signIn({ email, password }) {
     return {
       success: false,
       data: null,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }
@@ -39,7 +40,7 @@ export async function signUp({ email, password }) {
     return {
       success: false,
       data: null,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }

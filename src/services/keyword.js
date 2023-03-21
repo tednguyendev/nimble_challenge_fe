@@ -1,5 +1,6 @@
 import { createAxios } from '../config/axios';
 import { getAuthToken } from './auth';
+import getError from '../utils/getError.util';
 
 export async function getScrapedPage(keywordId, keyword) {
   try {
@@ -18,7 +19,7 @@ export async function getScrapedPage(keywordId, keyword) {
   } catch (error) {
     return {
       success: false,
-      error: error.response.data.message,
+      error: getError(error),
     };
   }
 }
