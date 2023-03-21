@@ -35,6 +35,9 @@ export default function CreateReport(
     customRequest: dummyRequest,
     fileList: fileList,
     disabled: isLoading,
+    showUploadList: {
+      showRemoveIcon: false
+    },
     beforeUpload: file => {
       const isCSV = file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
       if (!isCSV) {
