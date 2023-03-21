@@ -1,22 +1,40 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Table, Button, Modal, Upload, message, Input, Row, Col } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import { uploadReport, getReports } from '../../services/report';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Table, Button } from 'antd';
+import { getReports } from '../../services/report';
+import CreateDetail from './create-report'
 import ReportDetail from './report-detail'
+import ReportHeader from './report-header'
 import { useHistory } from 'react-router-dom';
 
 import './style.scss'
 
-const { Dragger } = Upload;
-const { Search } = Input;
+const getCurrentOrderBy = (sorter) => {
+  let currentOrderBy = ""
+  if (sorter.order === 'descend' && sorter.field === 'created_at') {
+    currentOrderBy = "created_at_descending"
+  } else if (sorter.order === 'ascend' && sorter.field === 'created_at') {
+    currentOrderBy = "created_at_ascending"
+  } else if (sorter.order === 'descend' && sorter.field === 'name') {
+    currentOrderBy = "name_descending"
+  } else if (sorter.order === 'ascend' && sorter.field === 'name') {
+    currentOrderBy = "name_ascending"
+  } else if (sorter.order === 'descend' && sorter.field === 'status') {
+    currentOrderBy = "status_descending"
+  } else if (sorter.order === 'ascend' && sorter.field === 'status') {
+    currentOrderBy = "status_ascending"
+  } else if (sorter.order === 'descend' && sorter.field === 'percentage') {
+    currentOrderBy = "percentage_descending"
+  } else if (sorter.order === 'ascend' && sorter.field === 'percentage') {
+    currentOrderBy = "percentage_ascending"
+  }
+
+  return currentOrderBy
+}
 
 export default function Report({ reportId }) {
   const history = useHistory();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [name, setName] = useState('');
-  const [fileList, setFileList] = useState(null);
 
   const [data, setData] = useState([]);
   const [keyword, setKeyword] = useState('');
@@ -24,31 +42,6 @@ export default function Report({ reportId }) {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [selectedReportId, setSelectedReportId] = useState(reportId || null);
 
-  const handleTableChange = (pagination, _, sorter) => {
-    setPagination(pagination);
-
-    if (sorter) {
-      let currentOrderBy = ""
-      if (sorter.order === 'descend' && sorter.field === 'created_at') {
-        currentOrderBy = "created_at_descending"
-      } else if (sorter.order === 'ascend' && sorter.field === 'created_at') {
-        currentOrderBy = "created_at_ascending"
-      } else if (sorter.order === 'descend' && sorter.field === 'name') {
-        currentOrderBy = "name_descending"
-      } else if (sorter.order === 'ascend' && sorter.field === 'name') {
-        currentOrderBy = "name_ascending"
-      } else if (sorter.order === 'descend' && sorter.field === 'status') {
-        currentOrderBy = "status_descending"
-      } else if (sorter.order === 'ascend' && sorter.field === 'status') {
-        currentOrderBy = "status_ascending"
-      } else if (sorter.order === 'descend' && sorter.field === 'percentage') {
-        currentOrderBy = "percentage_descending"
-      } else if (sorter.order === 'ascend' && sorter.field === 'percentage') {
-        currentOrderBy = "percentage_ascending"
-      }
-      setOrderBy(currentOrderBy);
-    }
-  };
   const fetchData = useCallback(async () => {
     setLoading(true);
 
@@ -67,6 +60,10 @@ export default function Report({ reportId }) {
 
     setLoading(false);
   }, [pagination.current, pagination.pageSize, keyword, orderBy]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const columns = [
     {
@@ -108,89 +105,12 @@ export default function Report({ reportId }) {
     }
   ];
 
-  useEffect(() => {
-  // Call the fetchData function
-    fetchData();
-  }, [fetchData]);
+  const handleTableChange = (pagination, _, sorter) => {
+    setPagination(pagination);
 
-  const handleCreateReport = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleModalOk = async _ => {
-    setLoading(true);
-    const { success, data, error } = await uploadReport(fileList[0], name);
-    if (success) {
-      setIsModalVisible(false);
-      setName('');
-      setFileList([])
-      message.success('Report successfully uploaded!');
-      fetchData();
-      handleOpenReportModal(data.data.id)
-    } else {
-      message.error(error);
+    if (sorter) {
+      setOrderBy(getCurrentOrderBy(sorter));
     }
-    setLoading(false);
-  };
-
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    setName('');
-    setFileList([])
-  };
-
-  const dummyRequest = ({ _, onSuccess }) => {
-    setTimeout(() => {
-      onSuccess("ok");
-    }, 0);
-  };
-
-  const handleSearch = (value) => {
-    setKeyword(value);
-    setPagination({ ...pagination, current: 1 });
-  };
-  
-  const onSearch = (value) => {
-    handleSearch(value);
-  };
-  
-  const draggerProps = {
-    name: 'report',
-    multiple: false,
-    maxCount: 1,
-    customRequest: dummyRequest,
-    fileList: fileList,
-    disabled: isLoading,
-    beforeUpload: file => {
-      const isCSV = file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
-      if (!isCSV) {
-        message.error('You can only upload CSV files!');
-      }
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      const isLtMaxSize = file.size <= maxSize;
-      if (!isLtMaxSize) {
-        message.error('File must be smaller than 10MB!');
-      }
-      if (isCSV && isLtMaxSize) {
-        setFileList([file])
-      }
-      return isCSV && isLtMaxSize;
-    },
-    onChange(info) {
-      const { status } = info.file;
-      if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
-      }
-      if (status === 'done') {
-        message.success(`${info.file.name} file uploaded successfully.`);
-      } else if (status === 'error') {
-        message.error(`${info.file.name} file upload failed.`);
-      }
-    },
-  };
-
-  const handleReload = () => {
-    fetchData()
   };
 
   const handleOpenReportModal = (id) => {
@@ -202,32 +122,13 @@ export default function Report({ reportId }) {
 
   return (
     <div>
-      <Row>
-        <Col flex="auto">
-          <Search
-            placeholder="Search by report name or by keywords"
-            allowClear
-            enterButton="Search"
-            size="middle"
-            onSearch={onSearch}
-            style={{ width: 400 }}
-          />
-        </Col>
-        <Col flex="35px">
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleReload}
-            style={{marginRight: '20px'}}
-          >
-            Reload
-          </Button>
-        </Col>
-        <Col>
-          <Button type="primary" onClick={handleCreateReport} style={{ marginBottom: 16, marginRight: 16 }}>
-            Create New Report
-          </Button>
-        </Col>
-      </Row>
+      <ReportHeader
+        fetchData={fetchData}
+        pagination={pagination}
+        setPagination={setPagination}
+        setKeyword={setKeyword}
+        setIsModalVisible={setIsModalVisible}
+      />
       <Table
         dataSource={data}
         columns={columns}
@@ -237,7 +138,7 @@ export default function Report({ reportId }) {
         rowKey='id'
         rowClassName="report-row"
         size='small'
-        onRow={(record, rowIndex) => {
+        onRow={(record, _) => {
           return {
             onClick: (_) => {
               handleOpenReportModal(record.id);
@@ -245,33 +146,19 @@ export default function Report({ reportId }) {
           };
         }}
       />
-      <Modal
-        title="Create New Report"
-        visible={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        okButtonProps={{ disabled: isLoading || fileList?.length === 0 }}
-        cancelButtonProps={{ disabled: isLoading }}
-      >
-        <label htmlFor="report-name" style={{ fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>Name(optional):</label>
-        <Input
-          id="report-name"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ marginBottom: 16 }}
-        />
-        <label htmlFor="csv-dragger" style={{ fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>File:</label>
-        <Dragger {...draggerProps} id="csv-dragger">
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">Click or drag file to this area to upload</p>
-          <p className="ant-upload-hint">Support for a single CSV file upload. Maximum size: 10MB.</p>
-          <p className="ant-upload-hint">Note: We will trip the duplicated keywords in this CSV file to speed up the process of scraping data.</p>
-        </Dragger>
-      </Modal>
-      <ReportDetail setSelectedReportId={handleOpenReportModal} reportId={selectedReportId} fetchData={fetchData} />
+      <CreateDetail
+        setSelectedReportId={setSelectedReportId}
+        fetchData={fetchData}
+        isModalVisible={isModalVisible}
+        setIsModalVisible={setIsModalVisible}
+        isLoading={isLoading}
+        setLoading={setLoading}
+      />
+      <ReportDetail
+        setSelectedReportId={handleOpenReportModal}
+        reportId={selectedReportId}
+        fetchData={fetchData}
+      />
     </div>
   )
 }
