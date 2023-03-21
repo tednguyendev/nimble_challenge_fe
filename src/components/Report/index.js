@@ -31,41 +31,8 @@ const getCurrentOrderBy = (sorter) => {
   return currentOrderBy
 }
 
-export default function Report({ reportId }) {
-  const history = useHistory();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isLoading, setLoading] = useState(false);
-
-  const [data, setData] = useState([]);
-  const [keyword, setKeyword] = useState('');
-  const [orderBy, setOrderBy] = useState('');
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const resp = await getReports({
-        page: pagination.current,
-        perPage: pagination.pageSize,
-        keyword,
-        orderBy,
-      });
-      setData(resp.records);
-      setPagination({ ...pagination, total: resp.total });
-    } catch (error) {
-      console.error(error);
-    }
-
-    setLoading(false);
-  }, [pagination.current, pagination.pageSize, keyword, orderBy]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const columns = [
+const getColumns = (handleOpenReportModal) => {
+  return [
     {
       title: 'Report Name',
       dataIndex: 'name',
@@ -103,7 +70,42 @@ export default function Report({ reportId }) {
         <Button onClick={() => handleOpenReportModal(record.id)}>View Detail</Button>
       ),
     }
-  ];
+  ]
+}
+
+export default function Report({ reportId }) {
+  const history = useHistory();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+  const [data, setData] = useState([]);
+  const [keyword, setKeyword] = useState('');
+  const [orderBy, setOrderBy] = useState('');
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const resp = await getReports({
+        page: pagination.current,
+        perPage: pagination.pageSize,
+        keyword,
+        orderBy,
+      });
+
+      setData(resp.records);
+      setPagination({ ...pagination, total: resp.total });
+    } catch (_) {
+    }
+
+    setLoading(false);
+  }, [pagination.current, pagination.pageSize, keyword, orderBy]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleTableChange = (pagination, _, sorter) => {
     setPagination(pagination);
@@ -115,6 +117,7 @@ export default function Report({ reportId }) {
 
   const handleOpenReportModal = (id) => {
     setSelectedReportId(id)
+
     if (id) {
       history.replace('/reports/' + id);
     }
@@ -131,7 +134,7 @@ export default function Report({ reportId }) {
       />
       <Table
         dataSource={data}
-        columns={columns}
+        columns={getColumns(handleOpenReportModal)}
         pagination={pagination}
         loading={isLoading}
         onChange={handleTableChange}
