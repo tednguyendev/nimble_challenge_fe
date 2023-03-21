@@ -1,0 +1,17 @@
+server {
+  listen 80;
+  server_name <%= fetch(:nginx_domains) %>;
+  root <%= current_path %>/build;
+
+  location ~ ^/(images|javascripts|stylesheets|system|styles|scripts|locales|fonts)/ {
+    root <%= current_path %>/build;
+  }
+
+  location / {
+     try_files $uri  /index.html;
+  }
+
+  access_log /var/log/nginx/<%= fetch(:nginx_application_name) %>_access.log;
+  error_log /var/log/nginx/<%= fetch(:nginx_application_name) %>_error.log;
+}
+
