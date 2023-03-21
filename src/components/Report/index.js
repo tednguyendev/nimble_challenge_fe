@@ -101,6 +101,7 @@ export default function Report({ reportId }) {
     }
 
     setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize, keyword, orderBy]);
 
   useEffect(() => {

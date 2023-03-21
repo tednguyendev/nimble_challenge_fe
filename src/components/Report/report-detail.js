@@ -60,7 +60,8 @@ const getColumns = (handleDownload, downloadingKeywords, report) => {
         : (
           (record.status === "success")
           ? (
-            <a href="#" role="button" onClick={() => handleDownload(id, record)}>
+            // eslint-disable-next-line
+            <a target="_blank" href="#" onClick={() => handleDownload(id, record)}>
               Click here to download
             </a>
           ) : (<></>)
@@ -122,6 +123,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
 
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line
   }, [reportId, report?.status, err, isRetrying]);
 
   useEffect(() => {
