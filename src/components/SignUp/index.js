@@ -1,10 +1,9 @@
 import React from 'react';
-import { Form, Input, Button, Card, Typography } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { Button, Card, Form, Input, Typography } from 'antd';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useHistory } from 'react-router-dom';
-
-import './style.scss';
 import { signUp } from '../../services/auth';
+import './style.scss';
 
 function SignIn() {
   const history = useHistory();
@@ -50,7 +49,8 @@ function SignIn() {
         initialValues={{
           remember: true,
         }}
-        onFinish={onFinish}>
+        onFinish={onFinish}
+      >
         {message && (isSuccess !== null) && (
           <Form.Item>
             <Typography.Text type={isSuccess ? "success" : "danger"}>{message}</Typography.Text>
@@ -96,7 +96,7 @@ function SignIn() {
             },
             ({ getFieldValue }) => ({
               validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
+                if (!value || (getFieldValue('password') === value)) {
                   return Promise.resolve();
                 }
                 return Promise.reject('Password confirmation is not matched!');

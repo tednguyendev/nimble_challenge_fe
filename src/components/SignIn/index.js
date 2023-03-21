@@ -1,10 +1,9 @@
 import React from 'react';
-import { Form, Input, Button, Card, Typography } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { Button, Card, Form, Input, Typography } from 'antd';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useHistory } from 'react-router-dom';
-
-import './style.scss';
 import { signIn, setAuthToken } from '../../services/auth';
+import './style.scss';
 
 const getInitMessage = (accountVerifyStatus) => {
   if (accountVerifyStatus === 'success') {
