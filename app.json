@@ -1,0 +1,9 @@
+{
+  "name": "Nimble Scraper",
+  "script": "yarn",
+  "args": "start",
+  "env": {
+    "PORT": 8000,
+    "NODE_ENV": "development"
+  }
+}
