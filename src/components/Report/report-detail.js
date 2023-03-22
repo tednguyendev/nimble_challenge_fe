@@ -61,7 +61,7 @@ const getColumns = (handleDownload, downloadingKeywords, report) => {
           (record.status === "success")
           ? (
             // eslint-disable-next-line
-            <a target="_blank" href="#" onClick={() => handleDownload(id, record)}>
+            <a href="#" onClick={() => handleDownload(id, record)}>
               Click here to download
             </a>
           ) : (<></>)
