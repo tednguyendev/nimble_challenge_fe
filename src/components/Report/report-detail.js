@@ -118,7 +118,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [keywordId, setSelectedKeywordId] = useState(false);
+  const [keywordId, setSelectedKeywordId] = useState(null);
 
   useEffect(() => {
     async function fetchReport() {
