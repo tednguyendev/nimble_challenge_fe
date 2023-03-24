@@ -23,3 +23,21 @@ export async function getScrapedPage(keywordId, keyword) {
     };
   }
 }
+
+export async function getScrapedHtmlString(keywordId) {
+  try {
+    const resp = await createAxios({ token: getAuthToken() }).get('/keywords/' + keywordId + '/html-page');
+
+    return {
+      success: true,
+      data: resp.data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      error: getError(error),
+    };
+  }
+}

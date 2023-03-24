@@ -4,10 +4,11 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { getReport, retryReport } from "../../services/report";
 import { useHistory } from 'react-router-dom';
 import { getScrapedPage } from '../../services/keyword'
+import ScrapedHtmlDetail from './scrape-html-detail'
 
 const shouldSpin = (record, report) => record.status === "pending" && report.status !== 'failed'
 
-const getColumns = (handleDownload, downloadingKeywords, report) => {
+const getColumns = (handleDownload, downloadingKeywords, report, setSelectedKeywordId) => {
   return [
     {
       title: 'Keyword',
@@ -51,7 +52,7 @@ const getColumns = (handleDownload, downloadingKeywords, report) => {
       render: (status) => status.charAt(0).toUpperCase() + status.slice(1),
     },
     {
-      title: 'Scraped HTML page',
+      title: 'Download scraped HTML page',
       dataIndex: 'id',
       key: 'id',
       render: (id, record) =>
@@ -64,6 +65,27 @@ const getColumns = (handleDownload, downloadingKeywords, report) => {
             <a href="#" onClick={() => handleDownload(id, record)}>
               Click here to download
             </a>
+          ) : (<></>)
+        )
+    },
+    {
+      title: 'View scraped HTML page',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id, record) =>
+      (shouldSpin(record, report) || downloadingKeywords.includes(id))
+        ? <Spin />
+        : (
+          (record.status === "success")
+          ? (
+            <Button
+              style={{ marginBottom: 12, marginRight: "20px" }}
+              size="medium"
+              type="default"
+              onClick={() => { setSelectedKeywordId(id) }}
+            >
+              View
+            </Button>
           ) : (<></>)
         )
     },
@@ -94,6 +116,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [keywordId, setSelectedKeywordId] = useState(false);
 
   useEffect(() => {
     async function fetchReport() {
@@ -210,13 +233,17 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
           )
         }
         <Progress percent={report.percentage} />
-        <Table dataSource={getFilteredData(report, searchText)} columns={getColumns(handleDownload, downloadingKeywords, report)} />
+        <Table dataSource={getFilteredData(report, searchText)} columns={getColumns(handleDownload, downloadingKeywords, report, setSelectedKeywordId)} />
       </div>
     ) : (err ? (<div>{err}</div>) : (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Spin size="large" />
       </div>
     ))}
+    <ScrapedHtmlDetail
+      keywordId={keywordId}
+      setSelectedKeywordId={setSelectedKeywordId}
+    />
     </Modal>
   )
 };
