@@ -4,7 +4,7 @@ import { getScrapedHtmlString } from '../../services/keyword'
 
 import parse from 'html-react-parser'
 
-export default function ScrapedHtmlDetail ({ keywordId, setSelectedKeywordId }) {
+export default function ScrapedHtmlDetail({ keywordId, setSelectedKeywordId }) {
   const [htmlString, setHtmlString] = useState('');
   const [err, setErr] = useState(null);
 
@@ -35,7 +35,7 @@ export default function ScrapedHtmlDetail ({ keywordId, setSelectedKeywordId }) 
 
   return(
     <Modal
-      visible={keywordId !== null}
+      open={keywordId !== null}
       onCancel={handleModalCancel}
       footer={null}
       width='80%'

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Progress, Table, Modal, Spin, Tooltip, Input, Alert, message, Button, Col, Row } from "antd";
+import { Progress, Table, Modal, Spin, Tooltip, Input, Alert, message, Button, Col, Row, Typography } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { getReport, retryReport } from "../../services/report";
 import { useHistory } from 'react-router-dom';
 import { getScrapedPage } from '../../services/keyword'
 import ScrapedHtmlDetail from './scrape-html-detail'
+
+const { Title } = Typography;
 
 const shouldSpin = (record, report) => record.status === "pending" && report.status !== 'failed'
 
@@ -116,7 +118,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [keywordId, setSelectedKeywordId] = useState(false);
+  const [keywordId, setSelectedKeywordId] = useState(null);
 
   useEffect(() => {
     async function fetchReport() {
@@ -191,7 +193,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
 
   return(
     <Modal
-      visible={reportId !== null}
+      open={reportId !== null}
       onCancel={handleModalCancel}
       footer={null}
       width='80%' // Set width to 80%
@@ -200,7 +202,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
     >
       {(report && !isRetrying) ? (
       <div>
-        <h1>{report.name}</h1>
+        <Title level={2}>{report.name}</Title>
         <Row>
           <Col flex="auto">
             <h2>{"Status: " + report.status.charAt(0).toUpperCase() + report.status.slice(1)}</h2>
