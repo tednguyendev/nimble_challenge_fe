@@ -193,7 +193,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
 
   return(
     <Modal
-      visible={reportId !== null}
+      open={reportId !== null}
       onCancel={handleModalCancel}
       footer={null}
       width='80%' // Set width to 80%
@@ -202,7 +202,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
     >
       {(report && !isRetrying) ? (
       <div>
-        {/* <h1>{report.name}</h1> */}
         <Title level={2}>{report.name}</Title>
         <Row>
           <Col flex="auto">

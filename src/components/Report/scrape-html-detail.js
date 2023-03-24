@@ -35,7 +35,7 @@ export default function ScrapedHtmlDetail ({ keywordId, setSelectedKeywordId }) 
 
   return(
     <Modal
-      visible={keywordId !== null}
+      open={keywordId !== null}
       onCancel={handleModalCancel}
       footer={null}
       width='80%'

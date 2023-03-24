@@ -95,7 +95,7 @@ export default function CreateReport(
   return (
     <Modal
       title="Create New Report"
-      visible={isModalVisible}
+      open={isModalVisible}
       onOk={handleModalOk}
       onCancel={handleModalCancel}
       okButtonProps={{ disabled: isLoading || fileList?.length === 0 }}
