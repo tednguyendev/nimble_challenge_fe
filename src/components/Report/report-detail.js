@@ -178,6 +178,18 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
     }
   }
 
+  const formatStatus = (status) => {
+    let formattedStatus = ''
+
+    if (status === 'failed' || status === 'success') {
+      formattedStatus = 'processed'
+    } else {
+      formattedStatus = 'processing'
+    }
+
+    return formattedStatus.charAt(0).toUpperCase() + formattedStatus.slice(1)
+  }
+
   return(
     <Modal
       open={reportId !== null}
@@ -192,7 +204,7 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
         <Title level={2}>{report.name}</Title>
         <Row>
           <Col flex="auto">
-            <h2>{"Status: " + report.status.charAt(0).toUpperCase() + report.status.slice(1)}</h2>
+            <h2>{"Status: " + (formatStatus(report.status))}</h2>
           </Col>
           <Col>
             {report.status === 'failed' && (
