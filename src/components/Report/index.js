@@ -45,7 +45,18 @@ const getColumns = (handleOpenReportModal) => {
       dataIndex: 'status',
       key: 'status',
       sorter: (a, b) => a.name.localeCompare(b.name),
-      render: (status) => status.charAt(0).toUpperCase() + status.slice(1),
+      render: (status) => {
+        let formattedStatus = ''
+
+        if (status === 'failed' || status === 'success') {
+          formattedStatus = 'processed'
+        } else {
+          formattedStatus = 'processing'
+        }
+
+        return formattedStatus.charAt(0).toUpperCase() + formattedStatus.slice(1)
+      },
+
       sortDirections: ['descend', 'ascend']
     },
     {
