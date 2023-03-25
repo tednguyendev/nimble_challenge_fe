@@ -116,7 +116,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
   const [searchText, setSearchText] = useState('');
   const [err, setErr] = useState(null);
   const [downloadingKeywords, setDownloadingKeywords] = useState([]);
-  const [isPolling, setIsPolling] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [keywordId, setSelectedKeywordId] = useState(null);
 
@@ -125,11 +124,6 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
       const result = await getReport(reportId);
 
       if (result.success) {
-        const notTheFirstFetch = report
-
-        if (notTheFirstFetch && !isRetrying) {
-          setIsPolling(true)
-        }
         if (isRetrying) {
           setIsRetrying(false)
         }
@@ -151,18 +145,11 @@ export default function ReportDetail ({ reportId, setSelectedReportId, fetchData
     // eslint-disable-next-line
   }, [reportId, report?.status, err, isRetrying]);
 
-  useEffect(() => {
-    if (isPolling && report?.status === 'failed') {
-      message.error('System currently out of capacity. Please try again after some minutes.')
-    }
-  }, [report?.status, isPolling]);
-
   const handleModalCancel = () => {
     setSelectedReportId(null)
     setReport(null)
     setErr(null)
     setDownloadingKeywords([])
-    setIsPolling(false)
     fetchData()
     history.replace('/reports');
   };
